@@ -37,7 +37,6 @@ public final class Motors {
 
     // create gpio controller
     private final GpioController gpio = GpioFactory.getInstance();
-    ;
 
     // Reserve a current status of a motor so that we can change the speed and state.
     private State motorState[] = new State[MotorId.size()];
@@ -113,7 +112,17 @@ public final class Motors {
         if (motorState[motor].running) {
             motorState[motor].speed = speed;
 
-            pins[motor][USAGE.Enable.ordinal()].pulse(speed, true);      // Pulse it
+            pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn off
+
+            // block the current thread for the pulse duration
+            try {
+                Thread.sleep(speed);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException("Pulse blocking thread interrupted.", e);
+            }
+
+            pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn back on
         }
     }
 

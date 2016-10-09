@@ -47,6 +47,7 @@ public class MessageProcessor {
                 break;
 
             case Pause:
+                // block the current thread for the payload duration
                 try {
                     TimeUnit.SECONDS.sleep(payload);
                 } catch (InterruptedException e) {
