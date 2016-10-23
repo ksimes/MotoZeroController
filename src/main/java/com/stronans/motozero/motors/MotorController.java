@@ -3,9 +3,8 @@ package com.stronans.motozero.motors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stronans.messagebus.MessageBus;
 import com.stronans.messagebus.MessageListener;
-import com.stronans.motozero.Application;
-import com.stronans.motozero.messages.MotorMessage;
 import com.stronans.motozero.messages.MessageProcessor;
+import com.stronans.motozero.messages.MotorMessage;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -23,16 +22,24 @@ public class MotorController implements Runnable, MessageListener {
 
     public static final int DRIVER = 1;
 
+    private boolean testing = false;
     private MessageProcessor handler;
     private MessageBus messageBus = MessageBus.getInstance();
     private ObjectMapper mapper = new ObjectMapper();
+
+    public MotorController() {
+    }
+
+    public MotorController(boolean testing) {
+        this.testing = testing;
+    }
 
     @Override
     public void run() {
         log.info("Starting Motor Driver");
 
         try {
-            handler = new MessageProcessor();
+            handler = new MessageProcessor(testing);
         }
         catch(Exception e)
         {
@@ -48,12 +55,14 @@ public class MotorController implements Runnable, MessageListener {
     public void msgArrived(int i) {
         String rawMessage = messageBus.getMessage(DRIVER);
 
+        log.info("incomming msg : " + rawMessage);
+
         try {
             MotorMessage message = mapper.readValue(rawMessage, MotorMessage.class);
 
             handler.processMessage(message);
         } catch (IOException ioe) {
-            log.error(" ==>> FAILED TO DESERIALISE JSON MESSAGE: " + ioe.getMessage(), ioe);
+            log.error(" ==>> FAILED TO DESERIALISE JSON MESSAGE: " + ioe.getMessage());
         }
     }
 }

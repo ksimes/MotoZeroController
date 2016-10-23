@@ -15,10 +15,11 @@ public class MessageProcessor {
      */
     private static Logger log = Logger.getLogger(MessageProcessor.class);
     private boolean shutdownReceived = false;
-    private Motors motor = new Motors();
+    private Motors motor;
 
-    public MessageProcessor()
+    public MessageProcessor(boolean testing)
     {
+        motor = new Motors(testing);
         Runtime.getRuntime().addShutdownHook(new Thread() {
                                                  @Override
                                                  public void run() {
@@ -28,6 +29,9 @@ public class MessageProcessor {
                                              }
         );
     }
+
+    public MessageProcessor() { this(false); }
+
 
     public boolean shutdownReceived()
     {
@@ -47,6 +51,7 @@ public class MessageProcessor {
                 break;
 
             case Pause:
+                log.info("pause");
                 // block the current thread for the payload duration
                 try {
                     TimeUnit.SECONDS.sleep(payload);

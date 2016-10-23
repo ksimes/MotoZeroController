@@ -13,6 +13,7 @@ public final class Motors {
      * The <code>Logger</code> to be used.
      */
     private static final Logger logger = Logger.getLogger(Motors.class);
+    private final boolean testing;
 
     private enum USAGE {
         Enable,
@@ -26,37 +27,43 @@ public final class Motors {
 
     // Map the Motozero GPIO BCM pins to the Pi4J pin outs.
     private final Pin config[][] = {
-            {RaspiPin.GPIO_21, RaspiPin.GPIO_05, RaspiPin.GPIO_02},
-            {RaspiPin.GPIO_00, RaspiPin.GPIO_22, RaspiPin.GPIO_03},
-            {RaspiPin.GPIO_26, RaspiPin.GPIO_04, RaspiPin.GPIO_27},
-            {RaspiPin.GPIO_06, RaspiPin.GPIO_24, RaspiPin.GPIO_01}
+            {RaspiPin.GPIO_21, RaspiPin.GPIO_02, RaspiPin.GPIO_05},
+            {RaspiPin.GPIO_00, RaspiPin.GPIO_03, RaspiPin.GPIO_22},
+            {RaspiPin.GPIO_26, RaspiPin.GPIO_27, RaspiPin.GPIO_04},
+            {RaspiPin.GPIO_06, RaspiPin.GPIO_01, RaspiPin.GPIO_24}
     };
 
     private final GpioPinDigitalOutput pins[][] = new GpioPinDigitalOutput[MotorId.size()][USAGE.size()];
 
 
-    // create gpio controller
-    private final GpioController gpio = GpioFactory.getInstance();
+    private GpioController gpio = null;
 
     // Reserve a current status of a motor so that we can change the speed and state.
     private State motorState[] = new State[MotorId.size()];
 
-    public Motors() {
+    public Motors(boolean testing) {
+        this.testing = testing;
+
         for (int i = 0; i < MotorId.size(); i++) {
             motorState[i] = new State();
         }
 
-        for (int i = 0; i < MotorId.size(); i++) {
-            for (int j = 0; j < USAGE.size(); j++) {
-                GpioPinDigitalOutput pin;
-                // provision gpio pin #01 as an output pin and turn off
-                pin = gpio.provisionDigitalOutputPin(config[i][j], PinState.LOW);
+        if (!testing) {
+            // create gpio controller here
+            gpio = GpioFactory.getInstance();
 
-                // set shutdown state for this pin
-                pin.setShutdownOptions(true, PinState.LOW);
+            for (int i = 0; i < MotorId.size(); i++) {
+                for (int j = 0; j < USAGE.size(); j++) {
+                    GpioPinDigitalOutput pin;
+                    // provision gpio pin #01 as an output pin and turn off
+                    pin = gpio.provisionDigitalOutputPin(config[i][j], PinState.LOW);
 
-                pin.low();
-                pins[i][j] = pin;
+                    // set shutdown state for this pin
+                    pin.setShutdownOptions(true, PinState.LOW);
+
+                    pin.low();
+                    pins[i][j] = pin;
+                }
             }
         }
     }
@@ -65,17 +72,21 @@ public final class Motors {
         int motor = id.ordinal();
         if (!motorState[motor].running) {
             motorState[motor].running = true;
-            if (speed > -1) {
-                motorState[motor].speed = speed;
-                speed(id, speed);
-            } else {
-                speed(id, motorState[motor].speed);
-            }
+        }
 
+        if (speed > -1) {
+            motorState[motor].speed = speed;
+        }
+
+        if (!testing) {
             pins[motor][USAGE.Positive.ordinal()].high();    // Positive is high
             pins[motor][USAGE.Negative.ordinal()].low();     // Negative is low (ground)
-
             pins[motor][USAGE.Enable.ordinal()].high();      // Enable it
+        } else {
+            logger.info("forward");
+            logger.info("Motor: " + motor + "  Positive: " + config[motor][USAGE.Positive.ordinal()] + ".high");
+            logger.info("Motor: " + motor + "  Negative: " + config[motor][USAGE.Negative.ordinal()] + ".low");
+            logger.info("Motor: " + motor + "  Enabled");
         }
     }
 
@@ -85,14 +96,23 @@ public final class Motors {
 
     public void reverse(MotorId id, int speed) {
         int motor = id.ordinal();
-        if (motorState[motor].running) {
-            motorState[motor].running = false;
-            motorState[motor].speed = speed;
+        if (!motorState[motor].running) {
+            motorState[motor].running = true;
+        }
 
+        if (speed > -1) {
+            motorState[motor].speed = speed;
+        }
+
+        if (!testing) {
             pins[motor][USAGE.Positive.ordinal()].low();     // Positive is low
             pins[motor][USAGE.Negative.ordinal()].high();    // Negative is high (ground)
-
             pins[motor][USAGE.Enable.ordinal()].high();      // Enable it
+        } else {
+            logger.info("reverse");
+            logger.info("Motor: " + motor + "  Positive: " + config[motor][USAGE.Positive.ordinal()] + ".low");
+            logger.info("Motor: " + motor + "  Negative: " + config[motor][USAGE.Negative.ordinal()] + ".high");
+            logger.info("Motor: " + motor + "  Enabled");
         }
     }
 
@@ -103,7 +123,12 @@ public final class Motors {
     public void stop(MotorId id) {
         int motor = id.ordinal();
         if (motorState[motor].running) {
-            pins[motor][USAGE.Enable.ordinal()].low();      // disable it
+            if (!testing) {
+                pins[motor][USAGE.Enable.ordinal()].low();      // disable it
+            } else {
+                logger.info("stop");
+                logger.info("Motor: " + motor + "  Disabled");
+            }
         }
     }
 
@@ -112,22 +137,33 @@ public final class Motors {
         if (motorState[motor].running) {
             motorState[motor].speed = speed;
 
-            pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn off
+            if (!testing) {
+                pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn off
+            } else {
+                logger.info("speed");
+                logger.info("Motor: " + motor + "  toggle/off");
+            }
 
             // block the current thread for the pulse duration
             try {
                 Thread.sleep(speed);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new RuntimeException("Pulse blocking thread interrupted.", e);
             }
 
-            pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn back on
+            if (!testing) {
+                pins[motor][USAGE.Enable.ordinal()].toggle();      // Turn back on
+            } else {
+                logger.info("speed");
+                logger.info("Motor: " + motor + "  toggle/on");
+            }
         }
     }
 
     public void shutdown() {
-        gpio.shutdown();
+        if (!testing) {
+            gpio.shutdown();
+        }
     }
 
     private class State {
