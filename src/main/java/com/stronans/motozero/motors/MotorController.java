@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 
 /**
- * Motor driver. Processes message requests from the Brain and implements them.
+ * Processes message requests from the Brain and implements them.
  * <p>
  * Created by S.King on 08/10/2016.
  */
@@ -20,11 +20,17 @@ public class MotorController implements Runnable, MessageListener {
      */
     private static Logger log = Logger.getLogger(MotorController.class);
 
-    public static final int DRIVER = 1;
+    /**
+     * Number of queue on messagebus that this class is reading from/writing to.
+     */
+    private static final int DRIVER = 1;
 
     private boolean testing = false;
     private MessageProcessor handler;
     private MessageBus messageBus = MessageBus.getInstance();
+    /*
+     * Used to deserialise JSON messages from the messagebus.
+     */
     private ObjectMapper mapper = new ObjectMapper();
 
     public MotorController() {
@@ -50,7 +56,11 @@ public class MotorController implements Runnable, MessageListener {
         messageBus.addConsumer(DRIVER, this);
     }
 
-
+    /**
+     * Fired when a message for this Queue arries from the Message bus.
+     *
+     * @param queueSize Number of messages still on the messagebus for this queue.
+     */
     @Override
     public void msgArrived(int queueSize) {
         String rawMessage = messageBus.getMessage(DRIVER);

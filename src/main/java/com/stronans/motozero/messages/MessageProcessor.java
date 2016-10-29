@@ -7,6 +7,8 @@ import org.apache.log4j.Logger;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Processes each of the messages and applies that message to the motors.
+ *
  * Created by S.King on 01/10/2016.
  */
 public class MessageProcessor {
@@ -31,7 +33,6 @@ public class MessageProcessor {
     }
 
     public MessageProcessor() { this(false); }
-
 
     public boolean shutdownReceived()
     {
