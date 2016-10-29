@@ -2,7 +2,7 @@ import sbt.Keys._
 
 lazy val commonSettings = Seq(
   organization := "stronans.com",
-  version := "1.3.0",
+  version := "1.4.0",
   scalaVersion := "2.10.3",
   exportJars := true,
   // This forbids including Scala related libraries into the dependency

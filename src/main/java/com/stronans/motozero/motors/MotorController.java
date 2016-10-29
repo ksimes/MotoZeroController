@@ -52,10 +52,11 @@ public class MotorController implements Runnable, MessageListener {
 
 
     @Override
-    public void msgArrived(int i) {
+    public void msgArrived(int queueSize) {
         String rawMessage = messageBus.getMessage(DRIVER);
 
-        log.info("incomming msg : " + rawMessage);
+        log.info("incomming msg : [" + rawMessage + "]");
+        log.info("queue size : " + queueSize);
 
         try {
             MotorMessage message = mapper.readValue(rawMessage, MotorMessage.class);
