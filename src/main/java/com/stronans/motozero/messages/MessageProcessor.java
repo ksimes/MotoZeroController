@@ -81,9 +81,13 @@ public class MessageProcessor {
                 break;
 
             case HardLeft:
+                motor.forward(MotorId.ONE, payload);
+                motor.reverse(MotorId.TWO, payload);
                 break;
 
             case HardRight:
+                motor.reverse(MotorId.ONE, payload);
+                motor.forward(MotorId.TWO, payload);
                 break;
 
             case Shutdown:
