@@ -23,7 +23,7 @@ public class MotorController implements Runnable, MessageListener {
     /**
      * Number of queue on messagebus that this class is reading from/writing to.
      */
-    private static final int DRIVER = 1;
+    public static final int DRIVER = 1;
 
     private boolean testing = false;
     private MessageProcessor handler;

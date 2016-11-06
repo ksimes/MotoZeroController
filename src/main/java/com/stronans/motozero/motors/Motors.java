@@ -27,10 +27,10 @@ public final class Motors {
 
     // Map the Motozero GPIO BCM pins to the Pi4J pin outs.
     private final Pin config[][] = {
-            {RaspiPin.GPIO_21, RaspiPin.GPIO_02, RaspiPin.GPIO_05},
-            {RaspiPin.GPIO_00, RaspiPin.GPIO_03, RaspiPin.GPIO_22},
-            {RaspiPin.GPIO_26, RaspiPin.GPIO_27, RaspiPin.GPIO_04},
-            {RaspiPin.GPIO_06, RaspiPin.GPIO_01, RaspiPin.GPIO_24}
+            {RaspiPin.GPIO_21, RaspiPin.GPIO_05, RaspiPin.GPIO_02},
+            {RaspiPin.GPIO_00, RaspiPin.GPIO_22, RaspiPin.GPIO_03},
+            {RaspiPin.GPIO_26, RaspiPin.GPIO_04, RaspiPin.GPIO_27},
+            {RaspiPin.GPIO_06, RaspiPin.GPIO_24, RaspiPin.GPIO_01}
     };
 
     private final GpioPinDigitalOutput pins[][] = new GpioPinDigitalOutput[MotorId.size()][USAGE.size()];
