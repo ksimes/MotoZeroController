@@ -22,11 +22,11 @@ public class MessageProcessor {
     public MessageProcessor(boolean testing)
     {
         motor = new Motors(testing);
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new Thread("Motor shutdown") {
                                                  @Override
                                                  public void run() {
                                                      motor.shutdown();
-                                                     log.info("Motors  shutdown.");
+                                                     log.info("Motor shutdown.");
                                                  }
                                              }
         );

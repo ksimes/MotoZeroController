@@ -21,14 +21,18 @@ public class MotorController implements Runnable, MessageListener {
     private static Logger log = Logger.getLogger(MotorController.class);
 
     /**
-     * Number of queue on messagebus that this class is reading from/writing to.
+     * Queue ID on messagebus that this class is reading from/writing to.
      */
     public static final int DRIVER = 1;
 
     private boolean testing = false;
     private MessageProcessor handler;
+    /*
+     * Single instance of MessageBus throughout the application.
+     */
     private MessageBus messageBus = MessageBus.getInstance();
     /*
+     * Jackson Library object
      * Used to deserialise JSON messages from the messagebus.
      */
     private ObjectMapper mapper = new ObjectMapper();
@@ -46,18 +50,15 @@ public class MotorController implements Runnable, MessageListener {
 
         try {
             handler = new MessageProcessor(testing);
-        }
-        catch(Exception e)
-        {
+            messageBus.addConsumer(DRIVER, this);
+        } catch (Exception e) {
             log.error("  ==> FAILURE SETING UP MESSAGE HANDLER: " + e.getMessage(), e);
         }
-
         log.info("Motor Driver now setup and running");
-        messageBus.addConsumer(DRIVER, this);
     }
 
     /**
-     * Fired when a message for this Queue arries from the Message bus.
+     * Fired when a message for this Queue arrives from the Message bus.
      *
      * @param queueSize Number of messages still on the messagebus for this queue.
      */
